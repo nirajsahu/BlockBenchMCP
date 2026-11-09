@@ -1,8 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Security problem
-    url: https://github.com/RenasDemirbas/BlockBenchMCP/security/advisories/new
-    about: Report vulnerabilities privately, not as a public issue.
-  - name: Documentation
-    url: https://github.com/RenasDemirbas/BlockBenchMCP#readme
-    about: Install guide, workflows and the tool list.
